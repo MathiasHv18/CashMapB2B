@@ -1,35 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import MarketingPanel from "./components/MarketingPanel";
+import LoginForm from "./components/LoginForm";
+import RegisterForm from "./components/RegisterForm";
+import OnboardingPage from "./pages/OnboardingPage";
 
 function App() {
-  const [count, setCount] = useState(0)
+  // "login" | "register" | "onboarding" | "app" — cuatro estados posibles
+  const [page, setPage] = useState<"login" | "register" | "onboarding" | "app">(
+    "login",
+  );
+
+  if (page === "onboarding") {
+    return <OnboardingPage onComplete={() => setPage("app")} />;
+  }
+
+  // Pantalla temporal post-login hasta tener el dashboard real
+  if (page === "app") {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 20% 50%, #1e0a3c 0%, #0a0a18 60%, #080810 100%)",
+        }}
+      >
+        <div className="text-center">
+          <p className="text-white text-xl font-semibold">
+            ¡Sesión iniciada! 🎉
+          </p>
+          <p className="text-slate-400 text-sm mt-2">Aquí irá el dashboard</p>
+          <button
+            onClick={() => {
+              localStorage.removeItem("access_token");
+              setPage("login");
+            }}
+            className="mt-6 text-violet-400 hover:text-violet-300 text-sm cursor-pointer"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div
+      className="min-h-screen flex"
+      style={{
+        background:
+          "radial-gradient(ellipse 80% 60% at 20% 50%, #1e0a3c 0%, #0a0a18 60%, #080810 100%)",
+      }}
+    >
+      <MarketingPanel />
+
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        {page === "login" ? (
+          <LoginForm
+            onRegister={() => setPage("register")}
+            onSuccess={() => setPage("app")}
+          />
+        ) : (
+          <RegisterForm
+            onLogin={() => setPage("login")}
+            onSuccess={() => setPage("onboarding")}
+          />
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;

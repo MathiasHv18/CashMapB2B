@@ -41,7 +41,7 @@ def setInitialBalance(idBusiness: int, initialBalances: BalanceUpdate,  current_
             initialBalances.cashBalance,
             total,
             idBusiness,
-            current_user[0] 
+            current_user[0]
         ))
 
         if cursor.rowcount == 0:
@@ -59,12 +59,13 @@ def setInitialBalance(idBusiness: int, initialBalances: BalanceUpdate,  current_
         if conn:
             conn.close()
 
+
 @businessRouter.post("/create")
 def createBusiness(businessRecieved: BusinessIn, current_user: Annotated[tuple, Depends(get_current_user)]):
     owner_id = current_user[0]
     conn = None
     query = """INSERT INTO BUSINESSES (idOwner, idCategoryBusiness, name, description, email, foundationYear)
-    VALUES (%s, %s, %s, %s, %s, %s)"""
+    VALUES (%s, %s, %s, %s, %s, %s) RETURNING idBusiness"""
 
     try:
         conn = connectDB()
@@ -77,8 +78,9 @@ def createBusiness(businessRecieved: BusinessIn, current_user: Annotated[tuple, 
             businessRecieved.email,
             businessRecieved.foundationYear,
         ))
+        id_business = cursor.fetchone()[0]
         conn.commit()
-        return {"message": "Negocio inicializado", "data": businessRecieved}
+        return {"message": "Negocio inicializado", "idBusiness": id_business}
     except Exception as e:
         print(e)
         raise HTTPException(
