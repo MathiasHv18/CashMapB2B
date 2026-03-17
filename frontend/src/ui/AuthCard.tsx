@@ -1,4 +1,3 @@
-// Tarjeta glassmorphism que envuelve los formularios de auth.
 export default function AuthCard({ children }: { children: React.ReactNode }) {
   return (
     <div

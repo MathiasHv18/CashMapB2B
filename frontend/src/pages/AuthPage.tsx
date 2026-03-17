@@ -2,9 +2,11 @@ import MarketingPanel from "../components/MarketingPanel";
 import LoginForm from "../components/LoginForm";
 import RegisterForm from "../components/RegisterForm";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthPage() {
   const [showRegister, setShowRegister] = useState(false);
+  const navigate = useNavigate();
   return (
     <div
       className="min-h-screen flex"
@@ -14,15 +16,17 @@ export default function AuthPage() {
       }}
     >
       <MarketingPanel />
-
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         {showRegister ? (
           <RegisterForm
             onLogin={() => setShowRegister(false)}
-            onSuccess={() => setShowRegister(false)}
+            onSuccess={() => navigate("/onboarding")}
           />
         ) : (
-          <LoginForm onShowRegister={() => setShowRegister(true)} />
+          <LoginForm
+            onShowRegister={() => setShowRegister(true)}
+            onSuccess={() => navigate("/dashboard")}
+          />
         )}
       </div>
     </div>

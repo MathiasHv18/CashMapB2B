@@ -4,12 +4,17 @@ import AuthCard from "../ui/AuthCard";
 import Logo from "../ui/Logo";
 import Field from "../ui/Field";
 import SubmitButton from "../ui/SubmitButton";
+import ErrorMessage from "../ui/ErrorMessage";
 
 interface LoginFormProps {
   onShowRegister: () => void;
+  onSuccess: () => void;
 }
 
-export default function LoginForm({ onShowRegister }: LoginFormProps) {
+export default function LoginForm({
+  onShowRegister,
+  onSuccess,
+}: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +22,7 @@ export default function LoginForm({ onShowRegister }: LoginFormProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -33,6 +38,7 @@ export default function LoginForm({ onShowRegister }: LoginFormProps) {
         return;
       }
       localStorage.setItem("access_token", data.access_token);
+      onSuccess();
     } catch {
       setError("No se pudo conectar con el servidor");
     } finally {
@@ -102,11 +108,7 @@ export default function LoginForm({ onShowRegister }: LoginFormProps) {
           </button>
         </div>
 
-        {error && (
-          <p className="text-red-400 text-xs text-center bg-red-500/10 border border-red-500/20 rounded-xl py-2.5 px-3">
-            {error}
-          </p>
-        )}
+        <ErrorMessage error={error} />
 
         <SubmitButton
           loading={loading}

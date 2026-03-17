@@ -1,14 +1,16 @@
 import { useState } from "react";
-import Step1Business from "./Step1Business";
-import Step2Balance from "./Step2Balance";
+import Step1Business from "../components/Step1Business";
+import Step2Balance from "../components/Step2Balance";
+import { useNavigate } from "react-router-dom";
 
-interface Props {
-  onComplete: () => void;
-}
-
-export default function OnboardingPage({ onComplete }: Props) {
+export default function OnboardingPage() {
   const [step, setStep] = useState<1 | 2>(1);
-  const [idBusiness, setIdBusiness] = useState(0); // se llenará con el id devuelto por el backend en el paso 1
+  const [idBusiness, setIdBusiness] = useState(0);
+  const navigate = useNavigate();
+
+  const onComplete = () => {
+    navigate("/dashboard");
+  };
 
   return (
     <div

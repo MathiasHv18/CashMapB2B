@@ -1,17 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Logo from "../ui/Logo";
 import Field from "../ui/Field";
 import SubmitButton from "../ui/SubmitButton";
+import ErrorMessage from "../ui/ErrorMessage";
 import { IconCalendar, IconMail, IconStore } from "../components/icons";
-
-// TODO: verificar que estos IDs coincidan con la tabla CATEGORY_BUSINESSES en la DB
-const CATEGORIES = [
-  { id: 1, name: "Bodega / Abarrotes" },
-  { id: 2, name: "Restaurante / Comida" },
-  { id: 3, name: "Ropa / Calzado" },
-  { id: 4, name: "Tecnología / Electrónica" },
-  { id: 5, name: "Servicios" },
-];
+import { getCategories, createBusiness } from "../api/business";
+import type { Category } from "../api/business";
 
 interface Props {
   onNext: (idBusiness: number) => void;
@@ -25,35 +19,38 @@ export default function Step1Business({ onNext }: Props) {
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const result = await getCategories();
+        setCategories(result.data);
+      } catch {
+        setError("No se pudo cargar las categorias");
+      }
+    };
+    loadCategories();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch("http://localhost:8000/business/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          idCategoryBusiness: Number(idCategory),
-          name,
-          description,
-          email,
-          foundationYear: Number(year),
-        }),
+      const res = await createBusiness({
+        idCategoryBusiness: idCategory,
+        name,
+        description,
+        email,
+        foundationYear: Number(year),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.detail ?? "Error al crear el negocio");
-        return;
+      onNext(res.data);
+      console.log("Business created with ID:", res.data);
+    } catch (err: any) {
+      if (err.response) {
+        setError(err.response.data.message);
       }
-      onNext(data.idBusiness);
-    } catch {
-      setError("No se pudo conectar con el servidor");
     } finally {
       setLoading(false);
     }
@@ -78,7 +75,6 @@ export default function Step1Business({ onNext }: Props) {
           onChange={setName}
         />
 
-        {/* Select de categoría — igual que el select de Sexo en RegisterForm */}
         <div>
           <label className="block text-slate-300 text-xs font-medium mb-1.5 ml-1">
             Categoría
@@ -97,8 +93,12 @@ export default function Step1Business({ onNext }: Props) {
             <option value="" disabled hidden style={{ background: "#0f0f1a" }}>
               Selecciona una categoría
             </option>
-            {CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id} style={{ background: "#0f0f1a" }}>
+            {categories.map((c) => (
+              <option
+                key={c.idCategoryBusiness}
+                value={c.idCategoryBusiness}
+                style={{ background: "#0f0f1a" }}
+              >
                 {c.name}
               </option>
             ))}
@@ -126,7 +126,6 @@ export default function Step1Business({ onNext }: Props) {
           />
         </div>
 
-        {/* Descripción — textarea, no Field porque es multilínea */}
         <div>
           <label className="block text-slate-300 text-xs font-medium mb-1.5 ml-1">
             Descripción (opcional)
@@ -144,11 +143,7 @@ export default function Step1Business({ onNext }: Props) {
           />
         </div>
 
-        {error && (
-          <p className="text-red-400 text-xs text-center bg-red-500/10 border border-red-500/20 rounded-xl py-2.5 px-3">
-            {error}
-          </p>
-        )}
+        <ErrorMessage error={error} />
 
         <SubmitButton
           loading={loading}

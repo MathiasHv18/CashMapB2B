@@ -4,6 +4,8 @@ import AuthCard from "../ui/AuthCard";
 import Logo from "../ui/Logo";
 import Field from "../ui/Field";
 import SubmitButton from "../ui/SubmitButton";
+import ErrorMessage from "../ui/ErrorMessage";
+import { register } from "../api/auth";
 
 interface Props {
   onLogin: () => void; // botón "ya tienes cuenta"
@@ -27,31 +29,20 @@ export default function RegisterForm({ onLogin, onSuccess }: Props) {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
-      const res = await fetch("http://localhost:8000/owner/createOwner", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: nombre,
-          lastname: apellido,
-          age: Number(edad),
-          sex: sexo,
-          email: email,
-          password: password,
-        }),
+      await register({
+        name: nombre,
+        lastname: apellido,
+        age: Number(edad),
+        sex: sexo,
+        email,
+        password,
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.detail ?? "Error al crear la cuenta");
-        return;
-      }
-
       onSuccess();
-    } catch {
-      setError("No se pudo conectar con el servidor");
+    } catch (err: any) {
+      if (err.response) {
+        setError(err.response.data.detail);
+      }
     } finally {
       setLoading(false);
     }
@@ -87,7 +78,6 @@ export default function RegisterForm({ onLogin, onSuccess }: Props) {
           />
         </div>
 
-        {/* Edad + Sexo */}
         <div className="grid grid-cols-2 gap-3">
           <Field
             label="Edad"
@@ -157,11 +147,7 @@ export default function RegisterForm({ onLogin, onSuccess }: Props) {
           }
         />
 
-        {error && (
-          <p className="text-red-400 text-xs text-center bg-red-500/10 border border-red-500/20 rounded-xl py-2.5 px-3">
-            {error}
-          </p>
-        )}
+        <ErrorMessage error={error} />
 
         <SubmitButton
           loading={loading}
