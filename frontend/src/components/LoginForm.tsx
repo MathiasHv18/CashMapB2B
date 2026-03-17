@@ -5,12 +5,11 @@ import Logo from "../ui/Logo";
 import Field from "../ui/Field";
 import SubmitButton from "../ui/SubmitButton";
 
-interface Props {
-  onRegister: () => void;
-  onSuccess: () => void;
+interface LoginFormProps {
+  onShowRegister: () => void;
 }
 
-export default function LoginForm({ onRegister, onSuccess }: Props) {
+export default function LoginForm({ onShowRegister }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +33,6 @@ export default function LoginForm({ onRegister, onSuccess }: Props) {
         return;
       }
       localStorage.setItem("access_token", data.access_token);
-      onSuccess();
     } catch {
       setError("No se pudo conectar con el servidor");
     } finally {
@@ -120,8 +118,8 @@ export default function LoginForm({ onRegister, onSuccess }: Props) {
       <p className="mt-7 text-center text-sm text-slate-500">
         ¿No tienes una cuenta?{" "}
         <button
-          onClick={onRegister}
           className="text-violet-400 hover:text-violet-300 font-semibold transition-colors cursor-pointer"
+          onClick={onShowRegister}
         >
           Regístrate aquí
         </button>

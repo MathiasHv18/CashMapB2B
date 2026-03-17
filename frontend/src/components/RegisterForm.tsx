@@ -45,12 +45,10 @@ export default function RegisterForm({ onLogin, onSuccess }: Props) {
       const data = await res.json();
 
       if (!res.ok) {
-        // El backend devuelve { detail: "..." } en caso de error
         setError(data.detail ?? "Error al crear la cuenta");
         return;
       }
 
-      // Éxito → ir al onboarding
       onSuccess();
     } catch {
       setError("No se pudo conectar con el servidor");
