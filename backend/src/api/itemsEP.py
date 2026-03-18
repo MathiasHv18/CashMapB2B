@@ -17,7 +17,24 @@ class ItemCreate(BaseModel):
     stock: float = 0.0
 
 
-@itemRouter.post("/add")
+class ItemOut(BaseModel):
+    idItem: int
+    name: str
+    sellPrice: float
+    stock: float
+    isService: bool
+
+
+class ItemCreateResponse(BaseModel):
+    message: str
+    data: ItemCreate
+
+
+class ItemListResponse(BaseModel):
+    items: list[ItemOut]
+
+
+@itemRouter.post("/add", response_model=ItemCreateResponse, status_code=status.HTTP_201_CREATED)
 def addItem(item: ItemCreate, current_user: Annotated[tuple, Depends(get_current_user)]):
     owner_id = current_user[0]
     conn = None
@@ -52,10 +69,10 @@ def addItem(item: ItemCreate, current_user: Annotated[tuple, Depends(get_current
 
         conn.commit()
 
-        return {
-            "message": "Item creado exitosamente",
-            "data": item
-        }
+        return ItemCreateResponse(
+            message="Item creado exitosamente",
+            data=item
+        )
 
     except Exception as e:
         if conn:
@@ -69,7 +86,7 @@ def addItem(item: ItemCreate, current_user: Annotated[tuple, Depends(get_current
             conn.close()
 
 
-@itemRouter.get("/list/{idBusiness}")
+@itemRouter.get("/list/{idBusiness}", response_model=ItemListResponse)
 def list_items(idBusiness: int, current_user: Annotated[tuple, Depends(get_current_user)]):
     conn = None
     try:
@@ -83,11 +100,18 @@ def list_items(idBusiness: int, current_user: Annotated[tuple, Depends(get_curre
 
         cursor.execute(
             "SELECT idItem, name, sellPrice, stock, isService FROM ITEMS WHERE idBusiness = %s", (idBusiness,))
-        if cursor.description:
-            columns = [desc[0] for desc in cursor.description]
-            items = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            return {"items": items}
-        return {"items": []}
+
+        items = []
+        for row in cursor.fetchall():
+            items.append(ItemOut(
+                idItem=row[0],
+                name=row[1],
+                sellPrice=row[2],
+                stock=row[3],
+                isService=row[4]
+            ))
+
+        return ItemListResponse(items=items)
     finally:
         if conn:
             conn.close()

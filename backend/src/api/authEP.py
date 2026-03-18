@@ -7,16 +7,16 @@ from pwdlib import PasswordHash
 from datetime import datetime, timedelta, timezone
 import jwt
 import os
+from core.config import settings
 from typing import Annotated
 
 authRouter = APIRouter()
 
 # JWT PARAMS
 password_hash = PasswordHash.recommended()
-SECRET_KEY = os.getenv('JWT_SECRET_KEY')
-ALGORITHM = os.getenv('ALGORITHM', "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = float(
-    os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '30'))
+SECRET_KEY = settings.JWT_SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 

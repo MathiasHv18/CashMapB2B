@@ -7,7 +7,7 @@ from api.authEP import ACCESS_TOKEN_EXPIRE_MINUTES, generateTokenJWT, hashPasswo
 ownerRouter = APIRouter()
 
 
-class OwnerProfile(BaseModel):
+class OwnerCreate(BaseModel):
     name: str
     lastname: str
     age: int
@@ -16,8 +16,22 @@ class OwnerProfile(BaseModel):
     password: str
 
 
-@ownerRouter.post("/createOwner")
-def createOwner(recievedOwner: OwnerProfile):
+class OwnerOut(BaseModel):
+    name: str
+    lastname: str
+    age: int
+    sex: str
+    email: str
+
+
+class OwnerCreateResponse(BaseModel):
+    message: str
+    data: OwnerOut
+    access_token: str
+
+
+@ownerRouter.post("/createOwner", response_model=OwnerCreateResponse, status_code=status.HTTP_201_CREATED)
+def createOwner(recievedOwner: OwnerCreate):
     conn = None
     if verifyUserExistenceByEmail(recievedOwner.email):
         raise HTTPException(
@@ -46,8 +60,9 @@ def createOwner(recievedOwner: OwnerProfile):
         ))
 
         conn.commit()
-        response_data = recievedOwner.model_dump()
-        response_data.pop("password")
+
+        # Validamos los datos de salida usando el modelo OwnerOut (filtrando automáticamente el password)
+        owner_out_data = OwnerOut(**recievedOwner.model_dump())
 
         user = getUserByEmail(recievedOwner.email)
 
@@ -61,7 +76,12 @@ def createOwner(recievedOwner: OwnerProfile):
         accessTokenJWT = generateTokenJWT(
             data={"sub": user[1]}, expires_delta=access_token_expires)
 
-        return {"message": "Owner created!", "data": response_data, "access_token": accessTokenJWT}
+        # Retornamos asegurando la estructura de OwnerCreateResponse
+        return OwnerCreateResponse(
+            message="Owner created!",
+            data=owner_out_data,
+            access_token=accessTokenJWT
+        )
 
     except Exception as e:
         if conn:

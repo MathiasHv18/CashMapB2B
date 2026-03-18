@@ -1,6 +1,8 @@
 # --- Global / macOS ---
 .DS_Store
 .env
+**/__pycache__/
+
 
 # --- Docker & DB ---
 pgadmin-data/
