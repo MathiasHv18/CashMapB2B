@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, status, Depends
-from database.dbManagement import connectDB, verifyUserExistenceByEmail
+from database.dbManagement import connectDB, getUserByEmail, verifyUserExistenceByEmail
 from datetime import datetime, timedelta, timezone
-from api.authEP import hashPasswordHTTP
+from api.authEP import ACCESS_TOKEN_EXPIRE_MINUTES, generateTokenJWT, hashPasswordHTTP
 
 ownerRouter = APIRouter()
 
@@ -22,7 +22,7 @@ def createOwner(recievedOwner: OwnerProfile):
     if verifyUserExistenceByEmail(recievedOwner.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="USER ALREADY EXISTS"
+            detail="Error! Este correo ya está en uso"
         )
 
     current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -48,7 +48,20 @@ def createOwner(recievedOwner: OwnerProfile):
         conn.commit()
         response_data = recievedOwner.model_dump()
         response_data.pop("password")
-        return {"message": "Owner created!", "data": response_data}
+
+        user = getUserByEmail(recievedOwner.email)
+
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to retrieve created user"
+            )
+
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        accessTokenJWT = generateTokenJWT(
+            data={"sub": user[1]}, expires_delta=access_token_expires)
+
+        return {"message": "Owner created!", "data": response_data, "access_token": accessTokenJWT}
 
     except Exception as e:
         if conn:

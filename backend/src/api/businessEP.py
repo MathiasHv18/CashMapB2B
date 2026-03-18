@@ -49,7 +49,7 @@ def setInitialBalance(idBusiness: int, initialBalances: BalanceUpdate,  current_
                 status_code=404, detail="Negocio no encontrado o no autorizado")
 
         conn.commit()
-        return {"message": "Balances actualizados correctamente", "total": total}
+        return {"message": "Balances actualizados correctamente", "data": total}
     except Exception as e:
         print(e)
         if conn:
@@ -78,9 +78,30 @@ def createBusiness(businessRecieved: BusinessIn, current_user: Annotated[tuple, 
             businessRecieved.email,
             businessRecieved.foundationYear,
         ))
-        id_business = cursor.fetchone()[0]
+        id_business = cursor.fetchone()[0] # type: ignore
         conn.commit()
-        return {"message": "Negocio inicializado", "idBusiness": id_business}
+        return {"message": "Negocio inicializado", "data": id_business}
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+    finally:
+        if conn:
+            conn.close()
+
+@businessRouter.get("/getCategories")
+def getCategories():
+    conn = None
+    query = "SELECT idCategoryBusiness, categorybusiness FROM CATEGORY_BUSINESS"
+
+    try:
+        conn = connectDB()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        categories = cursor.fetchall()
+        return {"data": [{"idCategoryBusiness": cat[0], "name": cat[1]} for cat in categories]}
     except Exception as e:
         print(e)
         raise HTTPException(

@@ -9,7 +9,6 @@ def connectDB():
         password=os.getenv('POSTGRES_PASSWORD'),
         host='localhost'
     )
-    print("Connection established!")
     return conn
 
 

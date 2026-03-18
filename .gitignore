@@ -1,0 +1,17 @@
+# --- Global / macOS ---
+.DS_Store
+.env
+
+# --- Docker & DB ---
+pgadmin-data/
+postgres-data/
+db-data/
+# --- Backend (Python/FastAPI) ---
+backend/__pycache__/
+backend/venv/
+backend/.pytest_cache/
+
+# --- Frontend (React/Node) ---
+frontend/node_modules/
+frontend/dist/
+frontend/.eslintcache
