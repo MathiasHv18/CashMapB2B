@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Annotated
-from database.dbManagement import connectDB
+from database.dbManagement import connectDB, releaseDB
 from api.authEP import get_current_user
 
 itemRouter = APIRouter()
@@ -25,16 +25,7 @@ class ItemOut(BaseModel):
     isService: bool
 
 
-class ItemCreateResponse(BaseModel):
-    message: str
-    data: ItemCreate
-
-
-class ItemListResponse(BaseModel):
-    items: list[ItemOut]
-
-
-@itemRouter.post("/add", response_model=ItemCreateResponse, status_code=status.HTTP_201_CREATED)
+@itemRouter.post("/add", status_code=status.HTTP_201_CREATED)
 def addItem(item: ItemCreate, current_user: Annotated[tuple, Depends(get_current_user)]):
     owner_id = current_user[0]
     conn = None
@@ -43,36 +34,38 @@ def addItem(item: ItemCreate, current_user: Annotated[tuple, Depends(get_current
         conn = connectDB()
         cursor = conn.cursor()
 
-        # SEGURIDAD: Verificar que el negocio pertenece al dueño autenticado
-        check_query = "SELECT 1 FROM BUSINESSES WHERE idBusiness = %s AND idOwner = %s"
-        cursor.execute(check_query, (item.idBusiness, owner_id))
-        if not cursor.fetchone():
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tienes permiso para modificar este negocio"
-            )
-
-        # INSERTAR el nuevo Item
+        # INSERTAR el nuevo Item validando el dueño en una sola consulta
         query = """
             INSERT INTO ITEMS (idBusiness, name, description, costPrice, sellPrice, isService, stock)
-            VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING idItem
+            SELECT idBusiness, %s, %s, %s, %s, %s, %s
+            FROM BUSINESSES
+            WHERE idBusiness = %s AND idOwner = %s
+            RETURNING idItem
         """
         cursor.execute(query, (
-            item.idBusiness,
             item.name,
             item.description,
             item.costPrice,
             item.sellPrice,
             item.isService,
-            item.stock
+            item.stock,
+            item.idBusiness,
+            owner_id
         ))
+
+        result = cursor.fetchone()
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No tienes permiso para modificar este negocio o el negocio no existe"
+            )
 
         conn.commit()
 
-        return ItemCreateResponse(
-            message="Item creado exitosamente",
-            data=item
-        )
+        return {
+            "message": "Item creado exitosamente",
+            "data": item
+        }
 
     except Exception as e:
         if conn:
@@ -83,10 +76,10 @@ def addItem(item: ItemCreate, current_user: Annotated[tuple, Depends(get_current
         )
     finally:
         if conn:
-            conn.close()
+            releaseDB(conn)
 
 
-@itemRouter.get("/list/{idBusiness}", response_model=ItemListResponse)
+@itemRouter.get("/list/{idBusiness}")
 def list_items(idBusiness: int, current_user: Annotated[tuple, Depends(get_current_user)]):
     conn = None
     try:
@@ -111,7 +104,7 @@ def list_items(idBusiness: int, current_user: Annotated[tuple, Depends(get_curre
                 isService=row[4]
             ))
 
-        return ItemListResponse(items=items)
+        return {"message": "Items listados exitosamente", "data": items}
     finally:
         if conn:
-            conn.close()
+            releaseDB(conn)

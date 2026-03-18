@@ -1,10 +1,9 @@
 import psycopg2
-from psycopg2 import pool
+import psycopg2.pool
 from core.config import settings
 
-# Inicializar Connection Pool de forma global
 try:
-    connection_pool = psycopg2.pool.SimpleConnectionPool( # type: ignore
+    connection_pool = psycopg2.pool.SimpleConnectionPool(
         1,   # Mínimo de conexiones abiertas
         20,  # Máximo de conexiones abiertas
         dbname=settings.POSTGRES_DB,
@@ -19,40 +18,16 @@ except Exception as e:
     print("Error initializing connection pool: ", e)
     connection_pool = None
 
-# Inyección de dependencia recomendada por FastAPI (Future-proof)
-
-
-def get_db_connection():
-    if not connection_pool:
-        raise Exception("Database connection pool is not initialized")
-    conn = connection_pool.getconn()
-    try:
-        yield conn
-    finally:
-        connection_pool.putconn(conn)
-
-
-class PooledConnectionWrapper:
-    """Wrapper para hacer el pool compatible con los `conn.close()` del código anterior"""
-
-    def __init__(self, conn, pool):
-        self._conn = conn
-        self._pool = pool
-
-    def __getattr__(self, name):
-        return getattr(self._conn, name)
-
-    def close(self):
-        if self._conn:
-            self._pool.putconn(self._conn)
-            self._conn = None
-
 
 def connectDB():
     if not connection_pool:
         raise Exception("Database connection pool is not initialized")
-    conn = connection_pool.getconn()
-    return PooledConnectionWrapper(conn, connection_pool)
+    return connection_pool.getconn()
+
+
+def releaseDB(conn):
+    if connection_pool and conn:
+        connection_pool.putconn(conn)
 
 
 def testConnectionDB():
@@ -69,8 +44,8 @@ def testConnectionDB():
         print("Error during connection: ", e)
     finally:
         if conn:
-            conn.close()
-            print("Conn closed")
+            releaseDB(conn)
+            print("Conn released")
 
 
 def verifyUserExistenceByEmail(email):
@@ -83,7 +58,7 @@ def verifyUserExistenceByEmail(email):
         return result is not None
     finally:
         cursor.close()
-        conn.close()
+        releaseDB(conn)
 
 
 def getUserByEmail(email):
@@ -95,4 +70,4 @@ def getUserByEmail(email):
         return cursor.fetchone()
     finally:
         cursor.close()
-        conn.close()
+        releaseDB(conn)

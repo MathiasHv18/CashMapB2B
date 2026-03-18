@@ -1,11 +1,10 @@
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Annotated, List
-from database.dbManagement import connectDB
+from database.dbManagement import connectDB, releaseDB
 from api.authEP import get_current_user
 
 transactionRouter = APIRouter()
-
 
 
 class ItemSale(BaseModel):
@@ -20,13 +19,14 @@ class SaleCreate(BaseModel):
     description: str | None = None
     items: List[ItemSale]
 
+
 class ExpenseCreate(BaseModel):
     idBusiness: int
     idPaymentMethod: int
-    amount: float # Monto total del gasto
+    amount: float  # Monto total del gasto
     description: str
-    isStockPurchase: bool = False # ¿Esta compra aumenta el stock?
-    items: List[ItemSale] | None = None # Solo si isStockPurchase es True
+    isStockPurchase: bool = False  # ¿Esta compra aumenta el stock?
+    items: List[ItemSale] | None = None  # Solo si isStockPurchase es True
 
 
 @transactionRouter.post("/sale")
@@ -84,7 +84,7 @@ def registerSale(sale: SaleCreate, current_user: Annotated[tuple, Depends(get_cu
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if conn:
-            conn.close()
+            releaseDB(conn)
 
 
 @transactionRouter.post("/expense")
@@ -93,7 +93,7 @@ def registerExpense(expense: ExpenseCreate, current_user: Annotated[tuple, Depen
     try:
         conn = connectDB()
         cursor = conn.cursor()
-        
+
         # 1. Crear la Transacción (idTypeTransaction 2 = Gasto)
         cursor.execute("""
             INSERT INTO TRANSACTIONS (idBusiness, idTypeTransaction, idPaymentMethod, amount, description)
@@ -128,7 +128,9 @@ def registerExpense(expense: ExpenseCreate, current_user: Annotated[tuple, Depen
         conn.commit()
         return {"message": "Gasto registrado", "idTransaction": id_tx}
     except Exception as e:
-        if conn: conn.rollback()
+        if conn:
+            conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        if conn: conn.close()
+        if conn:
+            releaseDB(conn)

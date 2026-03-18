@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 import os
 from typing import Annotated
 from api.authEP import get_current_user
-from database.dbManagement import connectDB
+from database.dbManagement import connectDB, releaseDB
 from datetime import datetime
 
 businessRouter = APIRouter()
@@ -57,7 +57,7 @@ def setInitialBalance(idBusiness: int, initialBalances: BalanceUpdate,  current_
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if conn:
-            conn.close()
+            releaseDB(conn)
 
 
 @businessRouter.post("/create")
@@ -78,7 +78,7 @@ def createBusiness(businessRecieved: BusinessIn, current_user: Annotated[tuple, 
             businessRecieved.email,
             businessRecieved.foundationYear,
         ))
-        id_business = cursor.fetchone()[0] # type: ignore
+        id_business = cursor.fetchone()[0]
         conn.commit()
         return {"message": "Negocio inicializado", "data": id_business}
     except Exception as e:
@@ -89,10 +89,11 @@ def createBusiness(businessRecieved: BusinessIn, current_user: Annotated[tuple, 
         )
     finally:
         if conn:
-            conn.close()
+            releaseDB(conn)
+
 
 @businessRouter.get("/getCategories")
-def getCategories():
+def getCategories(current_user: Annotated[tuple, Depends(get_current_user)]):
     conn = None
     query = "SELECT idCategoryBusiness, categorybusiness FROM CATEGORY_BUSINESS"
 
@@ -110,4 +111,4 @@ def getCategories():
         )
     finally:
         if conn:
-            conn.close()
+            releaseDB(conn)
