@@ -20,7 +20,7 @@ export default function AuthPage() {
         {showRegister ? (
           <RegisterForm
             onLogin={() => setShowRegister(false)}
-            onSuccess={() => navigate("/onboarding")}
+            onSuccess={() => navigate("/dashboard")}
           />
         ) : (
           <LoginForm

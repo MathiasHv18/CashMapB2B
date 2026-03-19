@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, status, Depends
+from typing import Annotated
 from database.dbManagement import connectDB, releaseDB, getUserByEmail, verifyUserExistenceByEmail
 from datetime import datetime, timedelta, timezone
 from api.authEP import ACCESS_TOKEN_EXPIRE_MINUTES, generateTokenJWT, hashPasswordHTTP
+from api.authEP import get_current_user
 
 ownerRouter = APIRouter()
 
@@ -22,6 +24,48 @@ class OwnerOut(BaseModel):
     age: int
     sex: str
     email: str
+
+
+@ownerRouter.get("/getBusinesses")
+def getBusinesses(current_user: Annotated[tuple, Depends(get_current_user)]):
+    owner_id = current_user[0]
+    conn = None
+    try:
+        conn = connectDB()
+        cursor = conn.cursor()
+
+        query = "SELECT * from businesses WHERE idowner = %s"
+        cursor.execute(query, (owner_id,))
+
+        businesses = cursor.fetchall()
+
+        businesses_out = []
+
+        for business in businesses:
+            business_out = {
+                "idBusiness": business[0],
+                "idOwner": business[1],
+                "idCategoryBusiness": business[2],
+                "name": business[3],
+                "description": business[4],
+                "email": business[5],
+                "foundationYear": business[6],
+                "created_at": str(business[7]),
+                "cashBalance": float(business[8]),
+                "digitalBalance": float(business[9]),
+                "totalBalance": float(business[10])
+            }
+            businesses_out.append(business_out)
+
+        return {"message": "Extraidos negocios", "data": businesses_out}
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if conn:
+            releaseDB(conn)
 
 
 @ownerRouter.post("/createOwner", status_code=status.HTTP_201_CREATED)
