@@ -1,0 +1,9 @@
+Listar productos del Negocio (ID, nombre, precioGuardado, descripcion quizas?)
+Listar los tipos de transacciones (VENTA o GASTO)
+
+
+Registrar venta
+Registrar gasto
+
+
+Devolver suma de cantidad de ventas, asi como el dinero, de X dia a Y dia. Lo mismo con los gastos
