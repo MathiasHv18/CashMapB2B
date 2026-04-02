@@ -4,6 +4,7 @@ import NoBusinessConfigured from "../components/NoBusinessConfigured";
 import { getBusinesses } from "../api/owner";
 import BussinessDashboard from "../components/BusinessDashboard";
 import Catalogo from "../components/Catalogo";
+import NuevaVenta from "../components/NuevaVenta";
 import Header from "../ui/Header";
 
 export default function DashboardPage() {
@@ -37,6 +38,13 @@ export default function DashboardPage() {
         return <BussinessDashboard business={business} />;
       case "catalogo":
         return <Catalogo business={business} />;
+      case "nueva_venta":
+        return (
+          <NuevaVenta
+            business={business}
+            onBack={() => setActiveTab("dashboard")}
+          />
+        );
       case "ventas":
         return <div className="p-6">Módulo de Ventas (Próximamente)</div>;
       case "gastos":
@@ -50,16 +58,25 @@ export default function DashboardPage() {
     <div className="flex h-screen w-full bg-[#0F0F0F] text-white font-sans overflow-hidden">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <main className="flex-1 flex flex-col overflow-y-auto">
+      <main className="flex-1 flex flex-col overflow-y-auto relative">
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
             Cargando...
           </div>
         ) : hasBusiness ? (
-          <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
-            <Header businessName={business.name} />
-            {renderContent()}
-          </div>
+          <>
+            {activeTab !== "nueva_venta" && (
+              <div className="p-8 pb-0 max-w-7xl mx-auto w-full">
+                <Header
+                  businessName={business.name}
+                  onRegistrarVenta={() => setActiveTab("nueva_venta")}
+                />
+              </div>
+            )}
+            <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
+              {renderContent()}
+            </div>
+          </>
         ) : (
           <NoBusinessConfigured />
         )}

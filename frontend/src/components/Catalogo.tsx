@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { getItemsByBusinessId, addItem } from "../api/item";
-import { IconBox, IconPlus, IconSearch, IconWrench, IconMoreHorizontal, IconX } from "./icons";
+import {
+  IconBox,
+  IconPlus,
+  IconSearch,
+  IconWrench,
+  IconMoreHorizontal,
+  IconX,
+} from "./icons";
 
 interface ItemData {
   idItem: number;
@@ -83,8 +90,8 @@ export default function Catalogo({ business }: Props) {
   useEffect(() => {
     const fetchItems = async () => {
       if (!business) return;
-      
-      const idToUse = business.idBusiness || business.id;
+
+      const idToUse = business.idBusiness;
       if (!idToUse) return;
 
       try {
@@ -98,10 +105,10 @@ export default function Catalogo({ business }: Props) {
       }
     };
     fetchItems();
-  }, [business?.idBusiness]);
+  }, []);
 
   const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase())
+    item.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -110,7 +117,9 @@ export default function Catalogo({ business }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white mb-1">Catalogo</h1>
-          <p className="text-sm text-[#888888]">Administra tus productos y servicios</p>
+          <p className="text-sm text-[#888888]">
+            Administra tus productos y servicios
+          </p>
         </div>
         <button
           onClick={handleOpenModal}
@@ -143,7 +152,9 @@ export default function Catalogo({ business }: Props) {
               <tr className="border-b border-[#2A2A2A] text-[#888888] text-sm">
                 <th className="font-normal py-4 px-6">Nombre</th>
                 <th className="font-normal py-4 px-6">Tipo</th>
-                <th className="font-normal py-4 px-6 text-right">Precio Venta</th>
+                <th className="font-normal py-4 px-6 text-right">
+                  Precio Venta
+                </th>
                 <th className="font-normal py-4 px-6 text-right">Costo</th>
                 <th className="font-normal py-4 px-6 text-right">Stock</th>
                 <th className="font-normal py-4 px-4 w-12"></th>
@@ -159,7 +170,9 @@ export default function Catalogo({ business }: Props) {
               ) : filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-[#888888]">
-                    {search ? "No se encontraron resultados" : "No tienes items configurados"}
+                    {search
+                      ? "No se encontraron resultados"
+                      : "No tienes items configurados"}
                   </td>
                 </tr>
               ) : (
@@ -186,7 +199,11 @@ export default function Catalogo({ business }: Props) {
                       S/ {Number(item.sellPrice).toFixed(2)}
                     </td>
                     <td className="py-4 px-6 text-right text-[#888888]">
-                      {item.isService ? "-" : (item.costPrice != null ? `S/ ${Number(item.costPrice).toFixed(2)}` : "-")}
+                      {item.isService
+                        ? "-"
+                        : item.costPrice != null
+                          ? `S/ ${Number(item.costPrice).toFixed(2)}`
+                          : "-"}
                     </td>
                     <td className="py-4 px-6 text-right text-[#888888]">
                       {item.isService ? "N/A" : item.stock}
@@ -218,7 +235,10 @@ export default function Catalogo({ business }: Props) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col p-6 gap-5 overflow-y-auto">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col p-6 gap-5 overflow-y-auto"
+            >
               <div className="flex gap-4">
                 <button
                   type="button"
@@ -258,7 +278,9 @@ export default function Catalogo({ business }: Props) {
                   placeholder="Ej: Corte Premium"
                   className="w-full bg-[#1a1a1a] border border-[#2A2A2A] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#6328e0]"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                 />
               </div>
 
@@ -269,12 +291,16 @@ export default function Catalogo({ business }: Props) {
                   placeholder="Detalles del producto o servicio"
                   className="w-full bg-[#1a1a1a] border border-[#2A2A2A] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#6328e0] resize-none h-20"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm text-[#888888]">Precio de Venta</label>
+                <label className="text-sm text-[#888888]">
+                  Precio de Venta
+                </label>
                 <input
                   required
                   type="number"
@@ -283,14 +309,18 @@ export default function Catalogo({ business }: Props) {
                   placeholder="0.00"
                   className="w-full bg-[#1a1a1a] border border-[#2A2A2A] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#6328e0]"
                   value={formData.sellPrice}
-                  onChange={(e) => setFormData({ ...formData, sellPrice: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, sellPrice: e.target.value })
+                  }
                 />
               </div>
 
               {!formData.isService && (
                 <div className="flex gap-4">
                   <div className="flex flex-col gap-1.5 flex-1">
-                    <label className="text-sm text-[#888888]">Precio de Costo</label>
+                    <label className="text-sm text-[#888888]">
+                      Precio de Costo
+                    </label>
                     <input
                       type="number"
                       step="0.01"
@@ -298,18 +328,24 @@ export default function Catalogo({ business }: Props) {
                       placeholder="0.00"
                       className="w-full bg-[#1a1a1a] border border-[#2A2A2A] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#6328e0]"
                       value={formData.costPrice}
-                      onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, costPrice: e.target.value })
+                      }
                     />
                   </div>
                   <div className="flex flex-col gap-1.5 flex-1">
-                    <label className="text-sm text-[#888888]">Stock Inicial</label>
+                    <label className="text-sm text-[#888888]">
+                      Stock Inicial
+                    </label>
                     <input
                       type="number"
                       min="0"
                       placeholder="0"
                       className="w-full bg-[#1a1a1a] border border-[#2A2A2A] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#6328e0]"
                       value={formData.stock}
-                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, stock: e.target.value })
+                      }
                     />
                   </div>
                 </div>

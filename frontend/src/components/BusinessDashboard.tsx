@@ -10,13 +10,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import {
-  IconCash,
-  IconPhone,
-  IconTrendingUp,
-  IconShoppingCart,
-  IconReceipt,
-} from "./icons";
+import { IconCash, IconPhone, IconTrendingUp } from "./icons";
 
 // Datos de prueba para el gráfico de líneas (Últimos 7 días)
 const lineData = [
