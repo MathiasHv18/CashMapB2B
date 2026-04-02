@@ -20,6 +20,7 @@ class ItemCreate(BaseModel):
 class ItemOut(BaseModel):
     idItem: int
     name: str
+    description: str
     sellPrice: float
     stock: float
     isService: bool
@@ -34,7 +35,6 @@ def addItem(item: ItemCreate, current_user: Annotated[tuple, Depends(get_current
         conn = connectDB()
         cursor = conn.cursor()
 
-        # INSERTAR el nuevo Item validando el dueño en una sola consulta
         query = """
             INSERT INTO ITEMS (idBusiness, name, description, costPrice, sellPrice, isService, stock)
             SELECT idBusiness, %s, %s, %s, %s, %s, %s
@@ -92,16 +92,17 @@ def list_items(idBusiness: int, current_user: Annotated[tuple, Depends(get_curre
             raise HTTPException(status_code=403, detail="No autorizado")
 
         cursor.execute(
-            "SELECT idItem, name, sellPrice, stock, isService FROM ITEMS WHERE idBusiness = %s", (idBusiness,))
+            "SELECT idItem, name, description, sellPrice, stock, isService FROM ITEMS WHERE idBusiness = %s", (idBusiness,))
 
         items = []
         for row in cursor.fetchall():
             items.append(ItemOut(
                 idItem=row[0],
                 name=row[1],
-                sellPrice=row[2],
-                stock=row[3],
-                isService=row[4]
+                description=row[2],
+                sellPrice=row[3],
+                stock=row[4],
+                isService=row[5]
             ))
 
         return {"message": "Items listados exitosamente", "data": items}

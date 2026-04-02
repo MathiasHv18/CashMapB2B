@@ -11,3 +11,5 @@ select * from category_business;
 SELECT * FROM transactions;
 
 SELECT * FROM TRANSACTION_DETAILS;
+
+SELECT * FROM items;

@@ -1,4 +1,6 @@
-Listar productos del Negocio (ID, nombre, precioGuardado, descripcion quizas?)
+Agregar producto / item a negocio CHECK
+
+Listar productos del Negocio (ID, nombre, precioGuardado, descripcion quizas?) CHECK
 Listar los tipos de transacciones (VENTA o GASTO)
 
 

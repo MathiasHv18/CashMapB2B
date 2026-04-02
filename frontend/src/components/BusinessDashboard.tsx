@@ -87,7 +87,7 @@ export default function BusinessDashboard({ business }: { business: any }) {
         {/* Caja Digital */}
         <div className="bg-[#18181B] rounded-xl p-6 flex flex-col justify-between h-32 border border-[#27272A] relative overflow-hidden">
           {/* Subtle purple gradient effect background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#7F30FA]/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-linear-to-br from-[#7F30FA]/5 to-transparent pointer-events-none" />
           <div className="relative flex justify-between items-start">
             <div>
               <p className="text-sm text-gray-400">Caja Digital</p>
