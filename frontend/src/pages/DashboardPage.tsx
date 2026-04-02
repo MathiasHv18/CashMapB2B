@@ -4,6 +4,7 @@ import NoBusinessConfigured from "../components/NoBusinessConfigured";
 import { getBusinesses } from "../api/owner";
 import BussinessDashboard from "../components/BusinessDashboard";
 import Catalogo from "../components/Catalogo";
+import Header from "../ui/Header";
 
 export default function DashboardPage() {
   const [business, setBusiness] = useState<any>(null);
@@ -35,7 +36,7 @@ export default function DashboardPage() {
       case "dashboard":
         return <BussinessDashboard business={business} />;
       case "catalogo":
-        return <Catalogo />;
+        return <Catalogo business={business} />;
       case "ventas":
         return <div className="p-6">Módulo de Ventas (Próximamente)</div>;
       case "gastos":
@@ -55,7 +56,10 @@ export default function DashboardPage() {
             Cargando...
           </div>
         ) : hasBusiness ? (
-          renderContent()
+          <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
+            <Header businessName={business.name} />
+            {renderContent()}
+          </div>
         ) : (
           <NoBusinessConfigured />
         )}
