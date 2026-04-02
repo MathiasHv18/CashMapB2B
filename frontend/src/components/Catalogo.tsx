@@ -222,6 +222,7 @@ export default function Catalogo({ business }: Props) {
       </div>
 
       {/* Modal Nuevo Item */}
+      
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-[#111111] border border-[#2A2A2A] rounded-xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">

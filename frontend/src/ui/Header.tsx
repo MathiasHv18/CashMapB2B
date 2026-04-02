@@ -3,11 +3,13 @@ import { IconShoppingCart, IconReceipt } from "../components/icons";
 interface HeaderProps {
   businessName: string;
   onRegistrarVenta?: () => void;
+  onRegistrarGasto?: () => void;
 }
 
 export default function Header({
   businessName,
   onRegistrarVenta,
+  onRegistrarGasto,
 }: HeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -30,7 +32,10 @@ export default function Header({
           <IconShoppingCart />
           Registrar Venta
         </button>
-        <button className="flex items-center gap-2 px-4 py-2 border border-[#922340] text-[#922340] hover:bg-[#922340]/10 text-sm font-medium rounded-md transition-colors">
+        <button
+          onClick={onRegistrarGasto}
+          className="flex items-center gap-2 px-4 py-2 border border-[#922340] text-[#922340] hover:bg-[#922340]/10 text-sm font-medium rounded-md transition-colors"
+        >
           <IconReceipt />
           Registrar Gasto
         </button>

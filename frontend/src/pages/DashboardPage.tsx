@@ -4,8 +4,9 @@ import NoBusinessConfigured from "../components/NoBusinessConfigured";
 import { getBusinesses } from "../api/owner";
 import BussinessDashboard from "../components/BusinessDashboard";
 import Catalogo from "../components/Catalogo";
-import NuevaVenta from "../components/NuevaVenta";
 import Header from "../ui/Header";
+import NuevaVenta from "../components/NuevaVenta"; 
+import RegistrarGasto from "../components/RegistrarGasto";
 
 export default function DashboardPage() {
   const [business, setBusiness] = useState<any>(null);
@@ -45,6 +46,13 @@ export default function DashboardPage() {
             onBack={() => setActiveTab("dashboard")}
           />
         );
+      case "registrar_gasto":
+        return (
+          <RegistrarGasto
+            business={business}
+            onBack={() => setActiveTab("dashboard")}
+          />
+        );
       case "ventas":
         return <div className="p-6">Módulo de Ventas (Próximamente)</div>;
       case "gastos":
@@ -65,11 +73,12 @@ export default function DashboardPage() {
           </div>
         ) : hasBusiness ? (
           <>
-            {activeTab !== "nueva_venta" && (
+            {activeTab !== "nueva_venta" && activeTab !== "registrar_gasto" && (
               <div className="p-8 pb-0 max-w-7xl mx-auto w-full">
                 <Header
                   businessName={business.name}
                   onRegistrarVenta={() => setActiveTab("nueva_venta")}
+                  onRegistrarGasto={() => setActiveTab("registrar_gasto")}
                 />
               </div>
             )}

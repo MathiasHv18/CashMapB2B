@@ -65,8 +65,8 @@ def registerSale(sale: SaleCreate, current_user: Annotated[tuple, Depends(get_cu
                 WHERE idItem = %s AND isService = FALSE
             """, (item.quantity, item.idItem))
 
+        # ACA PODEMOS LUEGO SEGMENTARLO POR YAPLE PLIN Y DEMAS Y COBRAR SI QUIEREN SABER CUANTO GANAN POR CADA APP
         # 3. Actualizar Balances del Negocio
-        # Dependiendo del método de pago, sumamos a cash o digital
         if sale.idPaymentMethod == 1:  # Efectivo (según tus inserts)
             balance_query = "UPDATE BUSINESSES SET cashBalance = cashBalance + %s, totalBalance = totalBalance + %s WHERE idBusiness = %s"
         else:  # Digital (Yape, Plin, Tarjeta, etc.)
