@@ -60,6 +60,7 @@ CREATE TABLE
         CONSTRAINT BUSINESSES_pk PRIMARY KEY (idBusiness)
     );
 
+
 -- Table: TYPE_TRANSACTIONS
 CREATE TABLE
     TYPE_TRANSACTIONS (
@@ -76,6 +77,8 @@ CREATE TABLE
         CONSTRAINT PAYMENT_METHODS_pk PRIMARY KEY (idPaymentMethod)
     );
 
+
+-- Si es type 1 es ingreso, 2 es egreso
 -- Table: TRANSACTIONS
 CREATE TABLE
     TRANSACTIONS (

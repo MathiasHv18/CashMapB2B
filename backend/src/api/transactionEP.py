@@ -29,6 +29,9 @@ class ExpenseCreate(BaseModel):
     items: List[ItemSale] | None = None  # Solo si isStockPurchase es True
 
 
+
+
+
 @transactionRouter.post("/sale")
 def registerSale(sale: SaleCreate, current_user: Annotated[tuple, Depends(get_current_user)]):
     conn = None
@@ -134,3 +137,5 @@ def registerExpense(expense: ExpenseCreate, current_user: Annotated[tuple, Depen
     finally:
         if conn:
             releaseDB(conn)
+
+
