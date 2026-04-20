@@ -11,25 +11,114 @@ import {
   Cell,
 } from "recharts";
 import { IconCash, IconPhone, IconTrendingUp } from "./icons";
+import {
+  getEconomyByDayByTime,
+  getSummaryByPaymentMethod,
+} from "../api/transaction";
+import { useEffect, useState } from "react";
 
-// Datos de prueba para el gráfico de líneas (Últimos 7 días)
-const lineData = [
-  { name: "Lun", ventas: 450, gastos: 100 },
-  { name: "Mar", ventas: 300, gastos: 80 },
-  { name: "Mie", ventas: 600, gastos: 200 },
-  { name: "Jue", ventas: 400, gastos: 150 },
-  { name: "Vie", ventas: 650, gastos: 190 },
-  { name: "Sab", ventas: 800, gastos: 250 },
-  { name: "Hoy", ventas: 300, gastos: 100 },
-];
-
-const pieData = [
-  { name: "Efectivo", value: 1250, color: "#2ECA69" },
-  { name: "Yape/Plin", value: 890, color: "#7F30FA" },
-  { name: "Tarjeta", value: 320, color: "#922340" },
-];
+type PaymentSummaryItem = {
+  name: string;
+  value: number;
+  color: string;
+};
 
 export default function BusinessDashboard({ business }: { business: any }) {
+  var today = new Date();
+  var startOfData = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() - 7,
+  );
+  var endOfData = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  const [economyData, setEconomyData] = useState([]);
+  const [paymentSummary, setPaymentSummary] = useState<PaymentSummaryItem[]>(
+    [],
+  );
+
+  const paymentColors: Record<string, string> = {
+    Efectivo: "#2ECA69",
+    Yape: "#7F30FA",
+    Plin: "#7F30FA",
+    Tarjeta: "#922340",
+  };
+
+  useEffect(() => {
+    const fetchPaymentSummary = async () => {
+      try {
+        const idToUse = business?.idBusiness || business?.id;
+
+        if (!idToUse) {
+          console.error(
+            "Business id not available for payment summary request",
+            business,
+          );
+          return;
+        }
+
+        const data = await getSummaryByPaymentMethod(idToUse);
+        setPaymentSummary(
+          (data?.data ?? []).map((item: any) => ({
+            name: item.idPaymentMethod,
+            value: item.totalAmount,
+            color: paymentColors[item.idPaymentMethod] ?? "#52525B",
+          })),
+        );
+        console.log("Payment summary fetched:", data);
+      } catch (error) {
+        console.error("Error fetching payment summary:", error);
+      }
+    };
+
+    if (business) {
+      fetchPaymentSummary();
+    }
+  }, [business]);
+
+  useEffect(() => {
+    const fetchEconomyData = async () => {
+      try {
+        const fechaInicio = startOfData.toISOString().split("T")[0];
+        const fechaFin = endOfData.toISOString().split("T")[0];
+        console.log(fechaFin);
+        const idToUse = business?.idBusiness || business?.id;
+
+        if (!idToUse) {
+          console.error(
+            "Business id not available for economy request",
+            business,
+          );
+          return;
+        }
+
+        const data = await getEconomyByDayByTime({
+          idBusiness: idToUse,
+          startDate: fechaInicio,
+          endDate: fechaFin,
+        });
+
+        setEconomyData(
+          (data?.data ?? []).map((item: any) => ({
+            name: item.date,
+            ventas: item.income,
+            gastos: item.expenses,
+          })),
+        );
+        console.log("Economy data fetched:", data);
+      } catch (error) {
+        console.error("Error fetching economy data:", error);
+      }
+    };
+
+    if (business) {
+      fetchEconomyData();
+    }
+  }, [business]);
+
   if (!business) return null;
 
   return (
@@ -88,14 +177,14 @@ export default function BusinessDashboard({ business }: { business: any }) {
       {/* GRÁFICOS */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Line Chart */}
-        <div className="lg:col-span-3 bg-[#18181B] border border-[#27272A] rounded-xl p-6 h-[400px] flex flex-col">
+        <div className="lg:col-span-3 bg-[#18181B] border border-[#27272A] rounded-xl p-6 h-100 flex flex-col">
           <h3 className="text-sm font-semibold text-white mb-6">
             Ventas vs Gastos - Ultimos 7 dias
           </h3>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={lineData}
+                data={economyData}
                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
               >
                 <CartesianGrid
@@ -160,7 +249,7 @@ export default function BusinessDashboard({ business }: { business: any }) {
         </div>
 
         {/* Pie/Donut Chart */}
-        <div className="lg:col-span-2 bg-[#18181B] border border-[#27272A] rounded-xl p-6 h-[400px] flex flex-col">
+        <div className="lg:col-span-2 bg-[#18181B] border border-[#27272A] rounded-xl p-6 h-100 flex flex-col">
           <h3 className="text-sm font-semibold text-white mb-2">
             Ventas por Metodo de Pago
           </h3>
@@ -168,7 +257,7 @@ export default function BusinessDashboard({ business }: { business: any }) {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={pieData}
+                  data={paymentSummary}
                   cx="50%"
                   cy="50%"
                   innerRadius={70}
@@ -177,7 +266,7 @@ export default function BusinessDashboard({ business }: { business: any }) {
                   dataKey="value"
                   stroke="none"
                 >
-                  {pieData.map((entry, index) => (
+                  {paymentSummary.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -195,7 +284,7 @@ export default function BusinessDashboard({ business }: { business: any }) {
           </div>
 
           <div className="space-y-3 mt-2 pr-4 pl-4">
-            {pieData.map((item) => (
+            {paymentSummary.map((item) => (
               <div
                 key={item.name}
                 className="flex items-center justify-between text-sm"
