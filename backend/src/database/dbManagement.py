@@ -2,26 +2,44 @@ import psycopg2
 import psycopg2.pool
 from core.config import settings
 
-try:
-    connection_pool = psycopg2.pool.SimpleConnectionPool(
-        1,   # Mínimo de conexiones abiertas
-        20,  # Máximo de conexiones abiertas
-        dbname=settings.POSTGRES_DB,
-        user=settings.POSTGRES_USER,
-        password=settings.POSTGRES_PASSWORD,
-        host=settings.DB_HOST,
-        port=settings.DB_PORT
-    )
-    if connection_pool:
-        print("Connection pool created successfully")
-except Exception as e:
-    print("Error initializing connection pool: ", e)
-    connection_pool = None
+import time
+
+connection_pool = None
+
+
+def init_pool(retries=10, delay=2):
+    global connection_pool
+    for i in range(retries):
+        try:
+            connection_pool = psycopg2.pool.SimpleConnectionPool(
+                1,
+                20,
+                dbname=settings.POSTGRES_DB,
+                user=settings.POSTGRES_USER,
+                password=settings.POSTGRES_PASSWORD,
+                host=settings.DB_HOST,
+                port=settings.DB_PORT
+            )
+            if connection_pool:
+                print("Connection pool created successfully")
+                return
+        except Exception as e:
+            print(
+                f"Error initializing connection pool (attempt {i+1}/{retries}): {e}")
+            time.sleep(delay)
+
+    print("Could not initialize connection pool after multiple attempts.")
+
+
+init_pool()
 
 
 def connectDB():
+    global connection_pool
     if not connection_pool:
-        raise Exception("Database connection pool is not initialized")
+        init_pool(retries=1, delay=0)
+        if not connection_pool:
+            raise Exception("Database connection pool is not initialized")
     return connection_pool.getconn()
 
 
